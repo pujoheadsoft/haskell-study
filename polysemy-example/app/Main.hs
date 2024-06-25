@@ -1,6 +1,7 @@
 module Main (main) where
 
 import Lib
+import Example as E
 
 main :: IO ()
-main = someFunc
+main = E.program
