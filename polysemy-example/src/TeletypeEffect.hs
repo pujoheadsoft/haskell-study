@@ -1,6 +1,6 @@
 {-# LANGUAGE TemplateHaskell, LambdaCase, BlockArguments, GADTs
            , FlexibleContexts, TypeOperators, DataKinds, PolyKinds, ScopedTypeVariables #-}
-module Example (program) where
+module TeletypeEffect (program, Teletype, writeTTY, readTTY, teletypeToIO) where
 
 import Polysemy (makeSem, Member, Embed, Sem, interpret, embed, runM, reinterpret2, run)
 import Polysemy.Output (runOutputMonoid, output)

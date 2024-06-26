@@ -25,8 +25,9 @@ source-repository head
 
 library
   exposed-modules:
-      Example
       Lib
+      ResourceEffect
+      TeletypeEffect
   other-modules:
       Paths_polysemy_example
   autogen-modules:

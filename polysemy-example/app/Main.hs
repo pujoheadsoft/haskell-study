@@ -1,7 +1,11 @@
 module Main (main) where
 
-import Lib
-import Example as E
+import TeletypeEffect as T
+import ResourceEffect as R
 
 main :: IO ()
-main = E.program
+main = do
+  R.runProgram >>= either
+    (\_ -> putStr "")
+    (\_ -> putStr "")
+
