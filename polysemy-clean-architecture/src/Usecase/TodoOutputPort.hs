@@ -7,14 +7,14 @@ import Domain.Error
 import State.TodoState
 import Polysemy
 
-data TodoOutputPortType = TodoOutputPortType {
-  stateForTodos :: Todos -> TodoState,
-  stateForError :: Error -> TodoState
-}
+-- data TodoOutputPortType = TodoOutputPortType {
+--   stateForTodos :: Todos -> TodoState,
+--   stateForError :: Error -> TodoState
+-- }
 
 data TodoOutputPort m a where
-  SetTodos :: Todos -> TodoOutputPort m a
-  SetError :: Error -> TodoOutputPort m a
+  SetTodos :: Todos -> TodoOutputPort m ()
+  SetError :: Error -> TodoOutputPort m ()
 
 makeSem ''TodoOutputPort
 

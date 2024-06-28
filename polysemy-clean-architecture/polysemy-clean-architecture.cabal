@@ -28,7 +28,9 @@ library
       Domain.Error
       Domain.Todo
       Domain.User
+      Gateway.TodoGateway
       Lib
+      Presenter.TodoPresenter
       State.TodoState
       Usecase.DisplayCompletedTodos
       Usecase.TodoOutputPort
