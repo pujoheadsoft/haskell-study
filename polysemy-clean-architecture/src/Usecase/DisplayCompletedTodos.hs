@@ -1,6 +1,8 @@
+{-# LANGUAGE RecordWildCards #-}
+
 module Usecase.DisplayCompletedTodos where
 import Domain.User
-import Domain.Todo (Logics, completed)
+import Domain.Todo (Logics (Logics), completed)
 import Polysemy (Sem, Members)
 import Usecase.TodoPort
 import Usecase.TodoOutputPort
@@ -21,8 +23,8 @@ execute2
   => UserId
   -> Logics
   -> m ()
-execute2 userId logics = do
+execute2 userId Logics{..} = do
   result <- findTodos2 userId
   case result of
-    Right todos -> setTodos2 $ completed logics todos
+    Right todos -> setTodos2 $ completed todos
     Left e -> setError2 e

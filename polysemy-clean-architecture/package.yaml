@@ -25,6 +25,7 @@ dependencies:
 - polysemy-plugin
 - HMock >= 0.5.1.2
 - hspec
+- template-haskell
 
 ghc-options:
 - -Wall

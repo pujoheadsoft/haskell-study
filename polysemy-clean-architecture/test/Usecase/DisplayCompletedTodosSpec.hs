@@ -22,7 +22,7 @@ import Polysemy (runM, interpret, embed, Member, Sem, Embed)
 import Usecase.TodoPort
 import Usecase.TodoOutputPort
 import Domain.Error (Error(Error))
-import Test.HMock (makeMockable, runMockT, ExpectContext (expectAny), (|->))
+import Test.HMock (makeMockable, runMockT, ExpectContext (expectAny, expect), (|->))
 
 makeMockable [t|TodoPortClass|]
 makeMockable [t|TodoOutputPortClass|]
@@ -59,8 +59,27 @@ spec = do
       })
 
     it "execute2 (experiment)" $ do
-      example $
+      example $ do
         runMockT $ do
-          expectAny $ FindTodos2 (UserId 10) |-> Right [todo (TodoTitle "hoge") Completed]
-          expectAny $ SetTodos2 [todo (TodoTitle "hoge") Completed] |-> ()
+          expect $ FindTodos2 (UserId 10) |-> Right [todo (TodoTitle "hoge") Completed]
+          expect $ SetTodos2 [todo (TodoTitle "hoge") Completed] |-> ()
           execute2 (UserId 10) logics
+
+{-
+    it "" $ do
+      let l = Logics {
+        completed = stub completed do
+          [(todo (TodoTitle "hoge") Completed)] :> [(todo (TodoTitle "hoge") Completed)]
+      }
+
+      runMockT $ do
+        stub findTodos2 (UserId 10) :> Right [todo (TodoTitle "hoge") Completed]
+        stub any :> ()
+
+        execute2 (UserId 10) l
+
+        verify setTodos2 [todo (TodoTitle "hoge") Completed]
+
+        
+-}
+
