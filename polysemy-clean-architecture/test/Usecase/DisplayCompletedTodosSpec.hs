@@ -1,25 +1,40 @@
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 module Usecase.DisplayCompletedTodosSpec (spec) where
 
 import Test.Hspec
 import State.TodoState
-import Usecase.DisplayCompletedTodos (execute)
+import Usecase.DisplayCompletedTodos (execute, execute2)
 import Domain.User (UserId(UserId))
 import Domain.Todo (logics, todo, TodoTitle (TodoTitle), TodoStatus (Completed), Todo (Todo))
 import Polysemy.State (runState, put, State)
 import Data.Function ((&))
 import Polysemy (runM, interpret, embed, Member, Sem, Embed)
-import Usecase.TodoPort (TodoPort(FindTodos))
-import Usecase.TodoOutputPort (TodoOutputPort(..))
+import Usecase.TodoPort
+import Usecase.TodoOutputPort
 import Domain.Error (Error(Error))
+import Test.HMock (makeMockable, runMockT, ExpectContext (expectAny), (|->))
+
+makeMockable [t|TodoPortClass|]
+makeMockable [t|TodoOutputPortClass|]
 
 spec :: Spec
 spec = do
   describe "Test DisplayCompletedTodos" $ do
     it "execute" $ do
       let
-        runTodoGateway :: Member (Embed IO) r => Sem (TodoPort : r) a -> Sem r a
+        runTodoGateway :: Sem (TodoPort : r) a -> Sem r a
         runTodoGateway = interpret $ \case
-          FindTodos userId -> embed $ return $ Right [todo (TodoTitle "hoge") Completed]
+          FindTodos userId -> return $ Right [todo (TodoTitle "hoge") Completed]
 
         runOutputPort :: Member (State TodoState) r => Sem (TodoOutputPort : r) a -> Sem r a
         runOutputPort = interpret $ \case
@@ -37,7 +52,15 @@ spec = do
         & runOutputPort
         & runState (TodoState {todos = [], errorMessage = Nothing})
         & runM
+
       fst v `shouldBe` (TodoState {
-        todos = [State.TodoState.Todo { title = "hoge" }], 
+        todos = [State.TodoState.Todo { title = "hoge" }],
         errorMessage = Nothing
       })
+
+    it "execute2 (experiment)" $ do
+      example $
+        runMockT $ do
+          expectAny $ FindTodos2 (UserId 10) |-> Right [todo (TodoTitle "hoge") Completed]
+          expectAny $ SetTodos2 [todo (TodoTitle "hoge") Completed] |-> ()
+          execute2 (UserId 10) logics

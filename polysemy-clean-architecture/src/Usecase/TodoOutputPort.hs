@@ -29,3 +29,7 @@ makeSem ''TodoOutputPort
 --   SetError e next -> do
 --     put $ t.stateForError e
 --     pure next
+
+class Monad m => TodoOutputPortClass m where
+  setTodos2 :: Todos -> m ()
+  setError2 :: Error -> m ()

@@ -18,3 +18,6 @@ data TodoPort m a where
   FindTodos :: UserId -> TodoPort m (Either Error Todos)
 
 makeSem ''TodoPort
+
+class Monad m => TodoPortClass m where
+  findTodos2 :: UserId -> m (Either Error Todos)
