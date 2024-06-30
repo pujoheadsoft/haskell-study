@@ -54,7 +54,9 @@ library
       TypeFamilies
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -fplugin=Polysemy.Plugin -O2 -flate-specialise -fspecialise-aggressively
   build-depends:
-      base >=4.7 && <5
+      HMock >=0.5.1.2
+    , base >=4.7 && <5
+    , hspec
     , polysemy
     , polysemy-plugin
   default-language: Haskell2010
@@ -80,7 +82,9 @@ executable polysemy-clean-architecture-exe
       TypeFamilies
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -fplugin=Polysemy.Plugin -O2 -flate-specialise -fspecialise-aggressively -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      HMock >=0.5.1.2
+    , base >=4.7 && <5
+    , hspec
     , polysemy
     , polysemy-clean-architecture
     , polysemy-plugin
@@ -90,6 +94,8 @@ test-suite polysemy-clean-architecture-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      LibSpec
+      Usecase.DisplayCompletedTodosSpec
       Paths_polysemy_clean_architecture
   autogen-modules:
       Paths_polysemy_clean_architecture
@@ -108,7 +114,9 @@ test-suite polysemy-clean-architecture-test
       TypeFamilies
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -fplugin=Polysemy.Plugin -O2 -flate-specialise -fspecialise-aggressively -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base >=4.7 && <5
+      HMock >=0.5.1.2
+    , base >=4.7 && <5
+    , hspec
     , polysemy
     , polysemy-clean-architecture
     , polysemy-plugin

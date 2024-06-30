@@ -23,6 +23,8 @@ dependencies:
 - base >= 4.7 && < 5
 - polysemy
 - polysemy-plugin
+- HMock >= 0.5.1.2
+- hspec
 
 ghc-options:
 - -Wall
