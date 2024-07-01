@@ -67,9 +67,15 @@ spec = do
 
 {-
     it "" $ do
-      let l = Logics {
-        completed = stub completed do
+      let
+        f = mock $ do
+          "a" :> "b" :> true
+          "b" :> "a" :> false 
+
+        completed_fn = mock $ do
           [(todo (TodoTitle "hoge") Completed)] :> [(todo (TodoTitle "hoge") Completed)]
+      l = Logics {
+        completed = completed_fn
       }
 
       runMockT $ do

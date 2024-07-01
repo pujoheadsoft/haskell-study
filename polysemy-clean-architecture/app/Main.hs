@@ -10,16 +10,16 @@ import Polysemy.State (runState)
 import State.TodoState
 import Polysemy
 import Data.Function ((&))
-import Mock
+import TH
 
-main :: IO ()
-main = do
-  v <- Usecase.execute (UserId 10) logics
-    & runTodoGateway
-    & runOutputPort
-    & runState (TodoState {todos = [], errorMessage = Nothing})
-    & runM
-  putStr (show (fst v))
+-- main :: IO ()
+-- main = do
+--   v <- Usecase.execute (UserId 10) logics
+--     & runTodoGateway
+--     & runOutputPort
+--     & runState (TodoState {todos = [], errorMessage = Nothing})
+--     & runM
+--   putStr (show (fst v))
 
 funA :: String -> String
 funA a = a
@@ -29,9 +29,8 @@ mockFunA a = do
   if a == "a" then a
   else error "not a"
 
--- main :: IO ()
--- main = do
---   argsAndTypes <- runQ (getFunctionArgsAndTypes 'funA)
---   putStrLn "Function arguments and their types:"
---   mapM_ print argsAndTypes
+main :: IO ()
+main = do
+  -- let s = $(stub 'funA)
+  putStr "hello"
 

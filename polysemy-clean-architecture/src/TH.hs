@@ -1,10 +1,14 @@
 {-# LANGUAGE TemplateHaskell #-}
-module Mock where
+module TH where
 
 import Language.Haskell.TH
+import Language.Haskell.TH.Syntax
 
---stub :: Name -> String
-stub n = runQ $ stringE . pprint =<< reify n
+-- stub :: Quote m => Name -> m Exp
+-- stub n = do 
+--   info <- reify n
+--   show info
+
 
 -- 指定された名前の関数の引数とその型を取得
 getFunctionArgsAndTypes :: Name -> Q [(String, Type)]
@@ -18,3 +22,18 @@ getFunctionArgsAndTypes funcName = do
 getArgs :: Type -> [(String, Type)]
 getArgs (AppT (AppT ArrowT argType) rest) = ("arg", argType) : getArgs rest
 getArgs resultType = [("result", resultType)]
+
+functionTypeToList :: Type -> [Type]
+functionTypeToList type' =
+  case type' of
+    AppT (AppT ArrowT t1) t2 ->
+      t1: functionTypeToList t2
+
+    SigT t _ ->
+      functionTypeToList t
+
+    ForallT _ _ t ->
+      functionTypeToList t
+
+    t ->
+      [t]

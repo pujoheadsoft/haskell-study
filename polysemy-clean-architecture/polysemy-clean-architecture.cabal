@@ -30,9 +30,9 @@ library
       Domain.User
       Gateway.TodoGateway
       Lib
-      Mock
       Presenter.TodoPresenter
       State.TodoState
+      TH
       Usecase.DisplayCompletedTodos
       Usecase.TodoOutputPort
       Usecase.TodoPort
@@ -58,6 +58,7 @@ library
       HMock >=0.5.1.2
     , base >=4.7 && <5
     , hspec
+    , mtl
     , polysemy
     , polysemy-plugin
     , template-haskell
@@ -87,6 +88,7 @@ executable polysemy-clean-architecture-exe
       HMock >=0.5.1.2
     , base >=4.7 && <5
     , hspec
+    , mtl
     , polysemy
     , polysemy-clean-architecture
     , polysemy-plugin
@@ -120,6 +122,7 @@ test-suite polysemy-clean-architecture-test
       HMock >=0.5.1.2
     , base >=4.7 && <5
     , hspec
+    , mtl
     , polysemy
     , polysemy-clean-architecture
     , polysemy-plugin
