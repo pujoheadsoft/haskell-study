@@ -5,6 +5,9 @@ import TH
 import Language.Haskell.TH
 import Language.Haskell.TH.Syntax
 import Control.Monad.State.Class
+import Data.IORef (IORef, newIORef, modifyIORef, writeIORef, readIORef)
+import GHC.IO (unsafePerformIO)
+import GHC.IORef (IORef(IORef))
 
 someFunc :: String
 someFunc = "someFunc"
@@ -12,10 +15,29 @@ someFunc = "someFunc"
 foo :: Bool -> String -> Int
 foo b h = 10
 
-bar :: (Eq a, Eq b) => a -> b -> c -> (a -> b -> c)
-bar a b c = \a' b' -> do
-  if (a == a' && b == b') then c
-  else error ""
+data Rec a = Rec { callValue :: a }
+
+bar :: (Eq a, Eq b) => a -> b -> c -> (a -> b -> c, IORef (Rec a))
+bar a b c = do
+  let
+    ref = unsafePerformIO $ newIORef Rec { callValue = a }
+    fn a' b' = do
+      let _ = unsafePerformIO $ writeIORef ref (Rec { callValue = a })
+      if a == a' && b == b' then c
+      else error ""
+  (fn, ref)
+
+zz :: String -> (String, IO (IORef (Rec String)))
+zz s = ("", newIORef Rec {callValue = ""})
+
+z2 = do
+  let
+    (fn, x) = bar "X1" "X2" (0 :: Integer)
+    r = fn "X1" "X2"
+  (Rec a) <- readIORef x
+  print r
+  print a
+
 
 class Monad m => XMock m where
   hoge :: String -> Int -> m String
