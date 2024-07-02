@@ -60,3 +60,21 @@ $(do
     x -> pure $ show x
    runIO $ print v
    return [])
+
+barlo :: (Eq a, Eq b) => a -> b -> c -> IO (a -> b -> c, IORef (Rec a))
+barlo a b c = do
+  ref <- newIORef Rec { callValue = a }
+  let
+    fn a' b' = do
+      let _ = writeIORef ref (Rec { callValue = a })
+      if a == a' && b == b' then c
+      else error ""
+  pure (fn, ref)
+
+z3 = do
+  (fn, x) <- barlo "X1" "X2" (0 :: Integer)
+  let
+    r = fn "X1" "X2"
+  (Rec a) <- readIORef x
+  print r
+  print a
