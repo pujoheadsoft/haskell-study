@@ -27,6 +27,7 @@ dependencies:
 - hspec
 - template-haskell
 - mtl
+- transformers
 
 ghc-options:
 - -Wall

@@ -1,80 +1,51 @@
+{-# LANGUAGE ConstraintKinds #-}
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FunctionalDependencies #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE UndecidableInstances #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 module Lib where
 
-import TH
-import Language.Haskell.TH
-import Language.Haskell.TH.Syntax
-import Control.Monad.State.Class
-import Data.IORef (IORef, newIORef, modifyIORef, writeIORef, readIORef)
-import GHC.IO (unsafePerformIO)
-import GHC.IORef (IORef(IORef))
+import Usecase.DisplayCompletedTodos (execute2)
+import Domain.User (UserId(UserId))
+import Domain.Todo
+import Usecase.TodoPort
+import Usecase.TodoOutputPort
+import Test.HMock
+import Data.IORef
+import GHC.IO
 
-someFunc :: String
-someFunc = "someFunc"
+makeMockable [t|TodoPortClass|]
+makeMockable [t|TodoOutputPortClass|]
 
-foo :: Bool -> String -> Int
-foo b h = 10
 
-data Rec a = Rec { callValue :: a }
+{-# NOINLINE logRef #-}
+logRef :: IORef [String]
+logRef = unsafePerformIO $ newIORef []
 
-bar :: (Eq a, Eq b) => a -> b -> c -> (a -> b -> c, IORef (Rec a))
-bar a b c = do
+{-# NOINLINE __completed #-}
+__completed :: (Todos -> Todos, IORef [String])
+__completed = unsafePerformIO $ do
+  modifyIORef logRef (\log -> "called" : log)
+  return (_completed, logRef)
+
+z :: IO ()
+z = do
   let
-    ref = unsafePerformIO $ newIORef Rec { callValue = a }
-    fn a' b' = do
-      let _ = unsafePerformIO $ writeIORef ref (Rec { callValue = a })
-      if a == a' && b == b' then c
-      else error ""
-  (fn, ref)
+    (f, ref) = __completed
+    _logics = Logics {
+      completed = f
+    }
 
-zz :: String -> (String, IO (IORef (Rec String)))
-zz s = ("", newIORef Rec {callValue = ""})
+  runMockT $ do
+    expect $ FindTodos2 (UserId 10) |-> Right [todo (TodoTitle "hoge") Completed]
+    expect $ SetTodos2 [todo (TodoTitle "hoge") Completed] |-> ()
+    execute2 (UserId 10) _logics
 
-z2 = do
-  let
-    (fn, x) = bar "X1" "X2" (0 :: Integer)
-    r = fn "X1" "X2"
-  (Rec a) <- readIORef x
-  print r
-  print a
-
-
-class Monad m => XMock m where
-  hoge :: String -> Int -> m String
-
-
-data Hoge = Hoge {value :: String}
-
-data Bar m a where
-  Bazz :: String -> Int -> Bar m Bool
-
--- $(do
---    info <- reify 'foo
---    runIO $ print info
---    return [])
-
-$(do
-   info <- reify 'foo
-   v <- case info of
-    (VarI (Name (OccName n) _) t c) -> pure $ show $ functionTypeToList t
-    x -> pure $ show x
-   runIO $ print v
-   return [])
-
-barlo :: (Eq a, Eq b) => a -> b -> c -> IO (a -> b -> c, IORef (Rec a))
-barlo a b c = do
-  ref <- newIORef Rec { callValue = a }
-  let
-    fn a' b' = do
-      let _ = writeIORef ref (Rec { callValue = a })
-      if a == a' && b == b' then c
-      else error ""
-  pure (fn, ref)
-
-z3 = do
-  (fn, x) <- barlo "X1" "X2" (0 :: Integer)
-  let
-    r = fn "X1" "X2"
-  (Rec a) <- readIORef x
-  print r
-  print a
+  log <- readIORef ref
+  print log
