@@ -1,0 +1,15 @@
+/home/kenji/source/haskell/haskell-study/polysemy-clean-architecture/src/Usecase/TodoOutputPort.hs:19:1-24: Splicing declarations
+    makeSem ''TodoOutputPort
+  ======>
+    setTodos ::
+      forall r_a466. Member TodoOutputPort r_a466 =>
+                     Todos -> Sem r_a466 ()
+    setError ::
+      forall r_a468. Member TodoOutputPort r_a468 =>
+                     Error -> Sem r_a468 ()
+    {-# INLINABLE CONLIKE setTodos #-}
+    setTodos x_a467
+      = send (SetTodos x_a467 :: TodoOutputPort (Sem r_a466) ())
+    {-# INLINABLE CONLIKE setError #-}
+    setError x_a469
+      = send (SetError x_a469 :: TodoOutputPort (Sem r_a468) ())

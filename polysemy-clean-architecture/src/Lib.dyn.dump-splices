@@ -1,0 +1,12 @@
+/home/kenji/source/haskell/haskell-study/polysemy-clean-architecture/src/Lib.hs:57:2-14: Splicing declarations
+    genFn 'echo
+  ======>
+    genedFn_a3Z2 arg1_a3Z3 arg2_a3Z4 = (arg1_a3Z3 ++ arg2_a3Z4)
+/home/kenji/source/haskell/haskell-study/polysemy-clean-architecture/src/Lib.hs:57:2-14: Splicing declarations
+    genFn 'echo
+  ======>
+    genedFn_a4KQ arg1_a4KR arg2_a4KS = (arg1_a4KR ++ arg2_a4KS)
+/home/kenji/source/haskell/haskell-study/polysemy-clean-architecture/src/Lib.hs:57:2-14: Splicing declarations
+    genFn 'echo
+  ======>
+    genedFn_a52s arg1_a52t arg2_a52u = (arg1_a52t ++ arg2_a52u)

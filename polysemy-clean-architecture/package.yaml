@@ -41,6 +41,9 @@ ghc-options:
 - -Wredundant-constraints
 - -fplugin=Polysemy.Plugin
 - -O2 -flate-specialise -fspecialise-aggressively
+- -ddump-splices
+- -ddump-to-file
+
 default-extensions:
 - DataKinds
 - FlexibleContexts

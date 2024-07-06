@@ -11,41 +11,55 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 module Lib where
 
-import Usecase.DisplayCompletedTodos (execute2)
-import Domain.User (UserId(UserId))
-import Domain.Todo
-import Usecase.TodoPort
-import Usecase.TodoOutputPort
-import Test.HMock
-import Data.IORef
-import GHC.IO
+-- import Usecase.DisplayCompletedTodos (execute2)
+-- import Domain.User (UserId(UserId))
+-- import Domain.Todo
+-- import Usecase.TodoPort
+-- import Usecase.TodoOutputPort
+-- import Test.HMock
+-- import Data.IORef
+-- import GHC.IO
+import TH
 
-makeMockable [t|TodoPortClass|]
-makeMockable [t|TodoOutputPortClass|]
+-- makeMockable [t|TodoPortClass|]
+-- makeMockable [t|TodoOutputPortClass|]
 
 
-{-# NOINLINE logRef #-}
-logRef :: IORef [String]
-logRef = unsafePerformIO $ newIORef []
+-- {-# NOINLINE logRef #-}
+-- logRef :: IORef [String]
+-- logRef = unsafePerformIO $ newIORef []
 
-{-# NOINLINE __completed #-}
-__completed :: (Todos -> Todos, IORef [String])
-__completed = unsafePerformIO $ do
-  modifyIORef logRef (\log -> "called" : log)
-  return (_completed, logRef)
+-- {-# NOINLINE __completed #-}
+-- __completed :: (Todos -> Todos, IORef [String])
+-- __completed = unsafePerformIO $ do
+--   modifyIORef logRef (\log -> "called" : log)
+--   return (_completed, logRef)
 
-z :: IO ()
-z = do
-  let
-    (f, ref) = __completed
-    _logics = Logics {
-      completed = f
-    }
+-- z :: IO ()
+-- z = do
+--   let
+--     (f, ref) = __completed
+--     _logics = Logics {
+--       completed = f
+--     }
 
-  runMockT $ do
-    expect $ FindTodos2 (UserId 10) |-> Right [todo (TodoTitle "hoge") Completed]
-    expect $ SetTodos2 [todo (TodoTitle "hoge") Completed] |-> ()
-    execute2 (UserId 10) _logics
+--   runMockT $ do
+--     expect $ FindTodos2 (UserId 10) |-> Right [todo (TodoTitle "hoge") Completed]
+--     expect $ SetTodos2 [todo (TodoTitle "hoge") Completed] |-> ()
+--     execute2 (UserId 10) _logics
 
-  log <- readIORef ref
-  print log
+--   log <- readIORef ref
+--   print log
+
+hoge :: Monoid a => a -> a -> a
+hoge a b = a <> b
+
+echo :: String -> String -> IO ()
+echo s b = print s
+
+$(genFn 'echo)
+$(genFnWithSig 'echo)
+
+-- x = do
+--   let h = stub
+--   h "" ""

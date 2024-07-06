@@ -1,0 +1,11 @@
+/home/kenji/source/haskell/haskell-study/polysemy-clean-architecture/src/Usecase/TodoPort.hs:20:1-18: Splicing declarations
+    makeSem ''TodoPort
+  ======>
+    findTodos ::
+      forall r_a4mc. Polysemy.Internal.Union.Member TodoPort r_a4mc =>
+                     UserId -> Polysemy.Internal.Sem r_a4mc (Either Error Todos)
+    {-# INLINABLE CONLIKE findTodos #-}
+    findTodos x_a4md
+      = Polysemy.Internal.send
+          (FindTodos x_a4md ::
+             TodoPort (Polysemy.Internal.Sem r_a4mc) (Either Error Todos))

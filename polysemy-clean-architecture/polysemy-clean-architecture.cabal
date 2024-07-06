@@ -53,7 +53,7 @@ library
       TypeApplications
       TypeOperators
       TypeFamilies
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -fplugin=Polysemy.Plugin -O2 -flate-specialise -fspecialise-aggressively
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -fplugin=Polysemy.Plugin -O2 -flate-specialise -fspecialise-aggressively -ddump-splices -ddump-to-file
   build-depends:
       HMock >=0.5.1.2
     , base >=4.7 && <5
@@ -84,7 +84,7 @@ executable polysemy-clean-architecture-exe
       TypeApplications
       TypeOperators
       TypeFamilies
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -fplugin=Polysemy.Plugin -O2 -flate-specialise -fspecialise-aggressively -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -fplugin=Polysemy.Plugin -O2 -flate-specialise -fspecialise-aggressively -ddump-splices -ddump-to-file -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HMock >=0.5.1.2
     , base >=4.7 && <5
@@ -119,7 +119,7 @@ test-suite polysemy-clean-architecture-test
       TypeApplications
       TypeOperators
       TypeFamilies
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -fplugin=Polysemy.Plugin -O2 -flate-specialise -fspecialise-aggressively -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -fplugin=Polysemy.Plugin -O2 -flate-specialise -fspecialise-aggressively -ddump-splices -ddump-to-file -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       HMock >=0.5.1.2
     , base >=4.7 && <5
