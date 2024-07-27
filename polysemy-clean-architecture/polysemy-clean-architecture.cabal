@@ -58,6 +58,7 @@ library
       HMock >=0.5.1.2
     , base >=4.7 && <5
     , hspec
+    , mockcat
     , mtl
     , polysemy
     , polysemy-plugin
@@ -89,6 +90,7 @@ executable polysemy-clean-architecture-exe
       HMock >=0.5.1.2
     , base >=4.7 && <5
     , hspec
+    , mockcat
     , mtl
     , polysemy
     , polysemy-clean-architecture
@@ -101,7 +103,6 @@ test-suite polysemy-clean-architecture-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
-      LibSpec
       Usecase.DisplayCompletedTodosSpec
       Paths_polysemy_clean_architecture
   autogen-modules:
@@ -124,6 +125,7 @@ test-suite polysemy-clean-architecture-test
       HMock >=0.5.1.2
     , base >=4.7 && <5
     , hspec
+    , mockcat
     , mtl
     , polysemy
     , polysemy-clean-architecture

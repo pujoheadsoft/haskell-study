@@ -162,3 +162,7 @@ genFnWithSig n = do
   let sig = SigD name signatureType -- シグニチャを作る
 
   return [sig, f] -- 返す(リストじゃないといけない)
+
+{-
+  mock = 1 :> 2 :> 100
+-}

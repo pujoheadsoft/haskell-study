@@ -28,6 +28,7 @@ dependencies:
 - template-haskell
 - mtl
 - transformers
+- mockcat
 
 ghc-options:
 - -Wall
