@@ -24,7 +24,7 @@ import Usecase.TodoPort
 import Usecase.TodoOutputPort
 import Domain.Error (Error(Error))
 import Test.HMock (makeMockable, runMockT, ExpectContext (expectAny, expect), (|->))
-import Test.MockCat (createStubFn, (|>), createMock, stubFn)
+import Test.MockCat (createStubFn, (|>), createMock, stubFn, shouldApplyTo)
 import Control.Monad.Trans
 
 makeMockable [t|TodoPortClass|]
@@ -38,34 +38,28 @@ spec = do
         todos = [todo (TodoTitle "hoge") Completed]
         completedTodos = [todo (TodoTitle "hoge") Completed]
       findFn <- createStubFn $ todos |> completedTodos
-      xx <- createStubFn $ UserId 10 |> (pure (Right todos) :: Sem [TodoOutputPort, State TodoState, Embed IO] (Either Error Todos))
+
+      xx <- createStubFn $ UserId 10 |> (pure (Right todos) :: Sem [TodoOutputPort, Embed IO] (Either Error Todos))
+      yy <- createMock $ completedTodos |> (pure () :: Sem '[Embed IO] ())
+      
       let
+        yf = stubFn yy
         --runTodoGateway :: Sem (TodoPort : r) a -> Sem r a
         runTodoGateway = interpret $ \case
-          --FindTodos userId -> return $ Right [todo (TodoTitle "hoge") Completed]
           FindTodos userId -> xx userId
 
-        runOutputPort :: Member (State TodoState) r => Sem (TodoOutputPort : r) a -> Sem r a
+        --runOutputPort :: Member (State TodoState) r => Sem (TodoOutputPort : r) a -> Sem r a
         runOutputPort = interpret $ \case
-          SetTodos t -> put TodoState {
-              todos = (\(Domain.Todo.Todo (TodoTitle t) _) -> State.TodoState.Todo { title = t }) <$> t,
-              errorMessage = Nothing
-            }
-          SetError (Error e) -> put TodoState {
-              todos = [],
-              errorMessage = Just e
-            }
+          SetTodos t -> yf t
+          SetError _ -> undefined
 
       v <- execute (UserId 10) logics
         & runTodoGateway
         & runOutputPort
-        & runState (TodoState {todos = [], errorMessage = Nothing})
         & runM
 
-      fst v `shouldBe` (TodoState {
-        todos = [State.TodoState.Todo { title = "hoge" }],
-        errorMessage = Nothing
-      })
+      v `shouldBe` ()
+      yy `shouldApplyTo` completedTodos
 
     it "execute2 (experiment)" $ do
       let
