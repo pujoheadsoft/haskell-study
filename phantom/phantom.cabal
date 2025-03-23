@@ -63,6 +63,7 @@ test-suite phantom-test
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
+      SortedSpec
       Paths_phantom
   autogen-modules:
       Paths_phantom
@@ -74,5 +75,6 @@ test-suite phantom-test
   build-depends:
       MissingH
     , base >=4.7 && <5
+    , hspec
     , phantom
   default-language: Haskell2010
