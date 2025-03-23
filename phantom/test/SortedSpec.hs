@@ -20,6 +20,7 @@ spec = do
       let
         xs = [4, 2, 7]
         ys = [9, 8, 3]
+
       result <- name (comparing Down) \gt -> do
         let xs' = sortBy gt xs
             ys' = sortBy gt ys
