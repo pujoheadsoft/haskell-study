@@ -5,7 +5,7 @@
 {-# LANGUAGE RankNTypes #-}
 module JMap where
 import qualified Data.Map as M
-import Named (The)
+import The (The)
 
 newtype JMap ks k v = JMap (M.Map k v) deriving Functor
 newtype Key ks k = Key k

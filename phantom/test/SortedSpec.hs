@@ -3,6 +3,7 @@ module SortedSpec where
 
 import Test.Hspec
 import Named
+import The
 import Data.Ord
 import Sorted
 

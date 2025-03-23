@@ -28,7 +28,9 @@ library
       JMap
       Lib
       Named
+      Old.Sorted
       Sorted
+      The
   other-modules:
       Paths_phantom
   autogen-modules:

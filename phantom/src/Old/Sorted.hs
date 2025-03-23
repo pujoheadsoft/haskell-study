@@ -1,7 +1,7 @@
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TypeOperators         #-}
-module Sorted where
+module Old.Sorted where
 
 import           Data.Coerce     (coerce)
 import qualified Data.List       as L
