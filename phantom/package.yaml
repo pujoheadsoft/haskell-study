@@ -36,6 +36,7 @@ ghc-options:
 
 default-extensions:
   - ExplicitNamespaces
+  - BlockArguments
 
 library:
   source-dirs: src

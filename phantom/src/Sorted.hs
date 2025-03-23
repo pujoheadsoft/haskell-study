@@ -25,3 +25,8 @@ mergeBy
   -> SortedBy comp [a]
 mergeBy comp xs ys =
   coerce $ U.mergeBy (the comp) (the xs) (the ys)
+
+minimum_01 :: SortedBy comp [a] -> Maybe a
+minimum_01 xs = case the xs of
+  [] -> Nothing
+  x : _ -> Just x

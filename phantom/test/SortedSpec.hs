@@ -1,5 +1,4 @@
 {-# OPTIONS_GHC -Wno-type-defaults #-}
-{-# LANGUAGE BlockArguments #-}
 module SortedSpec where
 
 import Test.Hspec
@@ -26,3 +25,10 @@ spec = do
             ys' = sortBy gt ys
         pure $ the (mergeBy gt xs' ys')
       result `shouldBe` [9, 8, 7, 4, 3, 2]
+    
+    it "minimum" do
+      let
+        xs = [4, 2, 7]
+      result <- name (comparing Down) \gt -> do
+        (pure . minimum_01 . sortBy gt) xs
+      result `shouldBe` Just 7
