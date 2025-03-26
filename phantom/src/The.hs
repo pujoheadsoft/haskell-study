@@ -4,7 +4,7 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE ViewPatterns #-}
 
-module The where
+module The (The(..), pattern The) where
 import Data.Coerce (Coercible, coerce)
 
 class The d a | d -> a where

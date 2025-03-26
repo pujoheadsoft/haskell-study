@@ -29,6 +29,8 @@ library
       Lib
       Named
       Old.Sorted
+      Proof
+      Refined
       Sorted
       The
   other-modules:
