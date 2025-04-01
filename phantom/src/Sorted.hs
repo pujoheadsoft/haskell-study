@@ -5,17 +5,13 @@
 {-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Sorted where
 
-import           Data.Coerce     (coerce)
 import qualified Data.List       as L
-import qualified Data.List.Utils as U
 import          Named            (type (~~), Defn)
-import           The             
+import           The
 import Refined                   (type (?), assert)
-
 
 newtype SortedBy com name = SortedBy Defn
 type role SortedBy nominal nominal
-
 
 sortBy
   :: ((a -> a -> Ordering) ~~ comp)
@@ -37,7 +33,7 @@ mergeBy (The comp) (The xs) (The ys) =
 --   x : _ -> Just x
 
 unsafeMergeBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
-unsafeMergeBy comp xs ys = go xs ys
+unsafeMergeBy comp = go
   where
     go [] ys' = ys'
     go xs' [] = xs'

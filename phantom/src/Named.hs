@@ -21,6 +21,7 @@ import The (The)
 newtype Named name a = Named a
 type a ~~ name = Named name a
 
+-- 「a に名前を付けて、その名前付き値で続きの処理をする」関数
 name :: a -> (forall name. (a ~~ name) -> t) -> t
 name x k = k (coerce x)
 
