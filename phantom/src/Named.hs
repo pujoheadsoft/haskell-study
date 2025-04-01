@@ -28,7 +28,11 @@ instance The (Named name a) a
 
 data Defn = Defn
 
+-- 制約の同義語で、`p`が定義されているモジュール内でのみ利用可能であることが期待される
+-- 型はエクスポートされ、コンストラクタは非公開とする
 type Defining p = (Coercible p Defn, Coercible Defn p)
 
+-- 定義した名前に関する規則を定義できるようにする
+-- coerceは、この関数がNamedモジュール内にあるため可能
 defn :: Defining f => a -> (a ~~ f)
 defn = coerce
