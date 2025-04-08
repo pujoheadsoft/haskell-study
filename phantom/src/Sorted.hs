@@ -27,10 +27,10 @@ mergeBy
 mergeBy (The comp) (The xs) (The ys) =
   assert $ unsafeMergeBy comp xs ys
 
--- minimum_01 :: SortedBy comp [a] -> Maybe a
--- minimum_01 xs = case the xs of
---   [] -> Nothing
---   x : _ -> Just x
+minimum_01 :: ([a] ?SortedBy comp) -> Maybe a
+minimum_01 (The xs) = case xs of
+  [] -> Nothing
+  x : _ -> Just x
 
 unsafeMergeBy :: (a -> a -> Ordering) -> [a] -> [a] -> [a]
 unsafeMergeBy comp = go
