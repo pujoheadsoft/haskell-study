@@ -3,9 +3,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 module Application.App (run) where
 
-import Control.Monad.IO.Class (MonadIO (liftIO))
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Reader (ReaderT (runReaderT), MonadReader (ask))
-import qualified Control.Concurrent.Async as Async
 
 import Application.Port
 import Application.Usecase
@@ -17,13 +16,14 @@ import qualified Infrastructure.JsonPlaceholderApiDriver as Api
 import Infrastructure.FileDriver
 import qualified Infrastructure.FileDriver as File
 import Control.Monad.IO.Unlift  (MonadUnliftIO)
-import qualified UnliftIO.Async as UAsync
+import UnliftIO.Async as UAsync
+import Control.Concurrent.Async as Async
 
 run :: IO ()
 run = do
   let env = Environment { apiBaseUrl = "https://jsonplaceholder.typicode.com" }
   options <- parseOptions
-  runAppM (execute2 options) env
+  runAppM (execute options) env
 
 newtype AppM a = AppM {runAppM :: ReaderT Environment IO a}
   deriving newtype (Functor, Applicative, Monad, MonadIO, MonadReader Environment, MonadUnliftIO)
@@ -32,7 +32,7 @@ runAppM :: AppM a -> Environment -> IO a
 runAppM appM = runReaderT appM.runAppM
 
 instance MonadAsync AppM where
-  xmapConcurrently = UAsync.mapConcurrently
+  mapConcurrently = UAsync.mapConcurrently
 
 instance UserDataPort AppM where
   getPosts uid = do

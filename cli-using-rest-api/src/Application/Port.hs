@@ -14,4 +14,4 @@ class Monad m => OutputPort m where
   savePostWithCommentsList :: FilePath -> [PostWithComments] -> m ()
 
 class MonadUnliftIO m => MonadAsync m where
-  xmapConcurrently :: Traversable t => (a -> m b) -> t a -> m (t b)
+  mapConcurrently :: Traversable t => (a -> m b) -> t a -> m (t b)

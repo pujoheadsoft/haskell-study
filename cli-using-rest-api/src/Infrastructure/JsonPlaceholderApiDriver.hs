@@ -9,6 +9,7 @@ import Environment
 import Network.Wreq (get, responseBody)
 import Control.Monad.IO.Class (MonadIO (..))
 import Control.Lens ((^.))
+import Control.Concurrent (threadDelay)
 
 data PostJson = PostJson
   { userId :: Int
@@ -40,7 +41,9 @@ fetchComments :: MonadIO m => Environment -> String -> m [CommentJson]
 fetchComments env userId = do
   let 
     url = env.apiBaseUrl <> "/users/" <> userId <> "/comments"
-  response <- liftIO $ get url
+  liftIO $ putStrLn $ "Fetching comments from: " <> url
+  response <- liftIO $ threadDelay 1000000 >> get url
+  liftIO $ putStrLn $ "Fetched comments, decoding..."
   case eitherDecode (response ^. responseBody) of
     Left err -> error $ "Failed to decode comments: " <> err
     Right comments -> pure comments
