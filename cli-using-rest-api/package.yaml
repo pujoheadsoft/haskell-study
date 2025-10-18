@@ -64,7 +64,7 @@ library:
   source-dirs: src
 
 executables:
-  cli-using-rest-api-exe:
+  cli:
     main:                Main.hs
     source-dirs:         app
     ghc-options:
@@ -75,7 +75,7 @@ executables:
     - cli-using-rest-api
 
 tests:
-  cli-using-rest-api-test:
+  cli-test:
     main:                Spec.hs
     source-dirs:         test
     ghc-options:
