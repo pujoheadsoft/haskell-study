@@ -1,4 +1,5 @@
-module Options (Options (..), parseOptions) where
+{-# LANGUAGE FlexibleInstances #-}
+module Domain.Options (Options (..), userId, outputPath, parseOptions) where
 
 import Options.Applicative
   ( Parser,
@@ -16,11 +17,13 @@ import Options.Applicative
     strOption,
     (<**>),
   )
+import Control.Lens (makeFieldsId)
 
 data Options = Options
   { userId :: String,
     outputPath :: FilePath
   }
+makeFieldsId ''Options
 
 optionUserId :: Parser String
 optionUserId =

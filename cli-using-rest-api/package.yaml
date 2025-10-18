@@ -22,6 +22,14 @@ description:         Please see the README on GitHub at <https://github.com/gith
 dependencies:
 - base >= 4.7 && < 5
 - optparse-applicative
+- aeson
+- aeson-pretty
+- lens
+- text
+- async
+- mtl
+- wreq
+- bytestring
 
 ghc-options:
 - -Wall
@@ -33,6 +41,24 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
+
+default-extensions:
+- LambdaCase
+- DerivingStrategies
+- DataKinds
+- TypeFamilies
+- BlockArguments
+- FunctionalDependencies
+- RecordWildCards
+- DefaultSignatures
+- PatternSynonyms
+- TemplateHaskell
+- PartialTypeSignatures
+- AllowAmbiguousTypes
+- DuplicateRecordFields
+- OverloadedRecordDot
+- NoFieldSelectors
+- OverloadedStrings
 
 library:
   source-dirs: src
@@ -58,3 +84,5 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - cli-using-rest-api
+    - hspec
+    - mockcat
