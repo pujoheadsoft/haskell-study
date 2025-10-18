@@ -30,6 +30,10 @@ dependencies:
 - mtl
 - wreq
 - bytestring
+- lifted-async
+- monad-control
+- unliftio-core
+- unliftio
 
 ghc-options:
 - -Wall
@@ -41,6 +45,8 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
+- -O2 
+- -threaded
 
 default-extensions:
 - LambdaCase
