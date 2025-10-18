@@ -12,7 +12,7 @@ import Control.Lens ((^.))
 
 data PostJson = PostJson
   { userId :: Int
-  , id :: Int
+  , id     :: Int
   , title  :: Text
   , body   :: Text
   } deriving (Show, Generic)
