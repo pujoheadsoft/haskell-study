@@ -3,15 +3,15 @@
 module Application.Port where
 
 import Domain.Post
-import Control.Monad.IO.Unlift (MonadUnliftIO)
+import Application.Error (AppError)
 
 class Monad m => UserDataPort m where
-  getPosts :: UserId -> m [Post]
-  getPostWithCommentsList :: [Post] -> m [PostWithComments]
-  getPostWithComments :: Post -> m PostWithComments
+  getPosts :: UserId -> m (Either AppError [Post])
+  getPostWithCommentsList :: [Post] -> m (Either AppError [PostWithComments])
+  getPostWithComments :: Post -> m (Either AppError PostWithComments)
 
 class Monad m => OutputPort m where
-  savePostWithCommentsList :: FilePath -> [PostWithComments] -> m ()
+  savePostWithCommentsList :: FilePath -> [PostWithComments] -> m (Either AppError ())
 
-class MonadUnliftIO m => MonadAsync m where
+class Monad m => MonadAsync m where
   mapConcurrently :: Traversable t => (a -> m b) -> t a -> m (t b)

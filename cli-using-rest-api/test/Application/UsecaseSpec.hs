@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
-module Application.UsecaseSpec where
+module Application.UsecaseSpec (spec) where
 
 import Test.Hspec
 import Domain.Post
@@ -11,6 +11,10 @@ import Domain.Options
 import Application.Port
 import Control.Monad.IO.Unlift  (MonadUnliftIO)
 import Test.MockCat (makeMock, runMockT, MockT, (|>))
+import Control.Monad.Except (MonadError(..))
+import Application.Error (AppError(..))
+import Data.List (isInfixOf)
+import Control.Exception (ErrorCall(..))
 
 makeMock [t|UserDataPort|]
 makeMock [t|OutputPort|]
@@ -18,43 +22,55 @@ makeMock [t|OutputPort|]
 instance (MonadUnliftIO m) => MonadAsync (MockT m) where
   mapConcurrently = traverse
 
+instance MonadError AppError (MockT IO) where
+  throwError e = error (show e)
+  catchError action _handler = action
+
 spec :: Spec
-spec = do
-  describe "usecaseのテスト" do
-    it "ユーザーの投稿とコメントをまとめたものを取得して保存する" do
+spec = describe "usecaseのテスト" do
+  it "ユーザーの投稿とコメントをまとめたものを取得して保存する" do
       let 
         post = Post "1" "title" "body"
         comment = Comment "1" "name" "email" "body"
 
       result <- runMockT do
-        _getPosts $ ("1" :: UserId) |> [post]
+        _getPosts $ ("1" :: UserId) |> Right [post]
 
         _getPostWithCommentsList $ [post] |>
-          [ PostWithComments post [ comment ] ]
+          Right [ PostWithComments post [ comment ] ]
 
         _savePostWithCommentsList $ ("output.json" :: FilePath)
           |> [ PostWithComments post [ comment ] ]
-          |> ()
+          |> Right ()
 
         execute (Options "1" "output.json")
 
       result `shouldBe` ()
 
-    it "ユーザーの投稿とコメントをまとめたものを取得して保存する その2" do
-      let 
-        post = Post "1" "title" "body"
-        comment = Comment "1" "name" "email" "body"
+  it "getPosts で DecodeError" do
+    runMockT (do
+      _getPosts $ ("1" :: UserId) |> Left (DecodeError "bad json")
+      execute (Options "1" "out.json")
+      ) `shouldThrow` \(ErrorCall s) -> "DecodeError" `isInfixOf` s
 
-      result <- runMockT do
-        _getPosts $ ("1" :: UserId) |> [post]
+  it "ユーザーの投稿とコメントをまとめたものを取得して保存する その2" do
+    let 
+      post = Post "1" "title" "body"
+      comment = Comment "1" "name" "email" "body"
+    result <- runMockT do
+      _getPosts $ ("1" :: UserId) |> Right [post]
+      _getPostWithComments $ post |>
+        Right (PostWithComments post [ comment ])
+      _savePostWithCommentsList $ ("output.json" :: FilePath)
+        |> [ PostWithComments post [ comment ] ]
+        |> Right ()
+      execute2 (Options "1" "output.json")
+    result `shouldBe` ()
 
-        _getPostWithComments $ post |>
-          PostWithComments post [ comment ]
-
-        _savePostWithCommentsList $ ("output.json" :: FilePath)
-          |> [ PostWithComments post [ comment ] ]
-          |> ()
-
-        execute2 (Options "1" "output.json")
-
-      result `shouldBe` ()
+  it "getPostWithComments で NetworkError" do
+    runMockT (do
+      let post = Post "1" "t" "b"
+      _getPosts $ ("1" :: UserId) |> Right [post]
+      _getPostWithComments $ post |> Left (NetworkError "boom")
+      execute2 (Options "1" "out.json")
+      ) `shouldThrow` \(ErrorCall s) -> "NetworkError" `isInfixOf` s

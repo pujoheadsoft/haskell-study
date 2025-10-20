@@ -41,7 +41,7 @@ packages:
 # extra-deps: []
 extra-deps:
 - git: https://github.com/pujoheadsoft/mockcat.git
-  commit: 13bce95c9f4f795fadc6e6bfb99571e867960d6b
+  commit: 67abf3dd962bf866340b75c40a2289084d9d4059
 
 # Override default flag values for local packages and extra-deps
 # flags: {}

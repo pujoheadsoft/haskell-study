@@ -5,15 +5,15 @@
 
 packages:
 - completed:
-    commit: 13bce95c9f4f795fadc6e6bfb99571e867960d6b
+    commit: 67abf3dd962bf866340b75c40a2289084d9d4059
     git: https://github.com/pujoheadsoft/mockcat.git
     name: mockcat
     pantry-tree:
-      sha256: 4ad76d48e9b87219f5b1998e157ca9353c841be99fd45e2a8d2d6587b34e1059
-      size: 2027
-    version: 0.5.3.0
+      sha256: 9ddac45bdcdee81dd003898e1aa3105b8bdad0016ebe7866c6e58c1c378d6fa5
+      size: 2104
+    version: 0.5.4.0
   original:
-    commit: 13bce95c9f4f795fadc6e6bfb99571e867960d6b
+    commit: 67abf3dd962bf866340b75c40a2289084d9d4059
     git: https://github.com/pujoheadsoft/mockcat.git
 snapshots:
 - completed:

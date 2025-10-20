@@ -26,6 +26,7 @@ source-repository head
 library
   exposed-modules:
       Application.App
+      Application.Error
       Application.Port
       Application.Usecase
       Domain.Options

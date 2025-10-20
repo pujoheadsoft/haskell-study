@@ -1,6 +1,5 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE UndecidableInstances #-}
 module Application.App (run) where
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
@@ -8,6 +7,8 @@ import Control.Monad.Reader (ReaderT (runReaderT), MonadReader (ask))
 
 import Application.Port
 import Application.Usecase
+import Control.Monad.Except (MonadError (..))
+import Control.Exception (try, throwIO)
 import Environment
 import Domain.Post
 import Domain.Options
@@ -15,21 +16,34 @@ import Infrastructure.JsonPlaceholderApiDriver
 import qualified Infrastructure.JsonPlaceholderApiDriver as Api
 import Infrastructure.FileDriver
 import qualified Infrastructure.FileDriver as File
-import Control.Monad.IO.Unlift  (MonadUnliftIO)
-import UnliftIO.Async as UAsync
+import Application.Error (AppError(..))
 import Control.Concurrent.Async as Async
+import UnliftIO.Async as UAsync
+import Control.Monad.IO.Unlift (MonadUnliftIO)
 
 run :: IO ()
 run = do
   let env = Environment { apiBaseUrl = "https://jsonplaceholder.typicode.com" }
   options <- parseOptions
-  runAppM (execute options) env
+  eRes <- (try $ runApp env (execute options)) :: IO (Either AppError ())
+  case eRes of
+    Left err -> putStrLn $ "Error: " <> show err
+    Right () -> pure ()
 
-newtype AppM a = AppM {runAppM :: ReaderT Environment IO a}
+newtype AppM a = AppM (ReaderT Environment IO a)
   deriving newtype (Functor, Applicative, Monad, MonadIO, MonadReader Environment, MonadUnliftIO)
 
-runAppM :: AppM a -> Environment -> IO a
-runAppM appM = runReaderT appM.runAppM
+runApp :: Environment -> AppM a -> IO a
+runApp env (AppM r) = runReaderT r env
+
+instance MonadError AppError AppM where
+  throwError e = AppM $ liftIO (throwIO e)
+  catchError (AppM r) handler = AppM $ do
+    env <- ask
+    er <- liftIO $ try (runReaderT r env)
+    case er of
+      Left e -> case handler e of AppM r' -> r'
+      Right v -> pure v
 
 instance MonadAsync AppM where
   mapConcurrently = UAsync.mapConcurrently
@@ -37,28 +51,27 @@ instance MonadAsync AppM where
 instance UserDataPort AppM where
   getPosts uid = do
     env <- ask
-    postJsons <- fetchPosts env uid
-    pure $ toPost <$> postJsons
+    eJsons <- fetchPosts env uid
+    pure $ fmap (map toPost) eJsons
 
   getPostWithCommentsList posts = do
     env <- ask
-    liftIO $ Async.mapConcurrently (toPostWithComments env) posts
+    eLists <- liftIO $ Async.mapConcurrently (single env) posts
+    pure $ sequence eLists
     where
-      toPostWithComments env post = do
-        commentsJson <- fetchComments env post.id
-        let comments = toComment <$> commentsJson
-        pure $ PostWithComments post comments
+      single env post = do
+        eComments <- fetchComments env post.id
+        pure $ fmap (PostWithComments post . map toComment) eComments
 
   getPostWithComments post = do
     env <- ask
-    commentsJson <- fetchComments env post.id
-    let comments = toComment <$> commentsJson
-    pure $ PostWithComments post comments
+    eComments <- fetchComments env post.id
+    pure $ fmap (PostWithComments post . map toComment) eComments
 
 instance OutputPort AppM where
   savePostWithCommentsList path postWithComments = do
-    saveAsJson path (PostWithCommentsListJson
-      (toPostWithCommentsJson <$> postWithComments))
+    liftIO $ saveAsJson path (PostWithCommentsListJson (toPostWithCommentsJson <$> postWithComments))
+    pure (Right ())
 
 toPost :: Api.PostJson -> Post
 toPost p = Post (show p.id) p.title p.body
