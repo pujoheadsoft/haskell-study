@@ -41,9 +41,7 @@ instance MonadError AppError AppM where
   catchError (AppM r) handler = AppM $ do
     env <- ask
     er <- liftIO $ try (runReaderT r env)
-    case er of
-      Left e -> case handler e of AppM r' -> r'
-      Right v -> pure v
+    either (\e -> case handler e of AppM r' -> r') pure er
 
 instance MonadAsync AppM where
   mapConcurrently = UAsync.mapConcurrently
