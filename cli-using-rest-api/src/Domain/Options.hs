@@ -1,5 +1,7 @@
 {-# LANGUAGE FlexibleInstances #-}
-module Domain.Options (Options (..), userId, outputPath, parseOptions) where
+{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE UndecidableInstances #-}
+module Domain.Options (Options (..), parseOptions) where
 
 import Options.Applicative
   ( Parser,
@@ -17,13 +19,13 @@ import Options.Applicative
     strOption,
     (<**>),
   )
-import Control.Lens (makeFieldsId)
+import Optics.TH (makeFieldLabels)
 
 data Options = Options
   { userId :: String,
     outputPath :: FilePath
   }
-makeFieldsId ''Options
+makeFieldLabels ''Options
 
 optionUserId :: Parser String
 optionUserId =

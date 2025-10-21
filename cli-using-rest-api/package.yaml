@@ -20,20 +20,20 @@ extra-source-files:
 description:         Please see the README on GitHub at <https://github.com/githubuser/cli-using-rest-api#readme>
 
 dependencies:
-- base >= 4.7 && < 5
-- optparse-applicative
-- aeson
-- aeson-pretty
-- lens
-- text
-- async
-- mtl
-- wreq
-- bytestring
-- lifted-async
-- monad-control
-- unliftio-core
-- unliftio
+  - base >= 4.7 && < 5
+  - optparse-applicative
+  - aeson
+  - aeson-pretty
+  - optics
+  - optics-th
+  - text
+  - async
+  - mtl
+  - req
+  - bytestring
+  - unliftio-core
+  - unliftio
+  - modern-uri
 
 ghc-options:
 - -Wall
@@ -45,8 +45,6 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
-- -O2 
-- -threaded
 
 default-extensions:
 - LambdaCase
@@ -92,18 +90,3 @@ tests:
     - cli-using-rest-api
     - hspec
     - mockcat
-
-benchmarks:
-  my-benchmark:
-    main:                Main.hs
-    source-dirs:         bench
-    ghc-options:
-      - -O2
-      - -rtsopts
-      - -threaded
-      - -with-rtsopts=-T # GC統計を有効化
-    dependencies:
-      - cli-using-rest-api
-      - criterion
-      - criterion-measurement
-      - tasty-bench
