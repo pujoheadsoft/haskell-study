@@ -20,6 +20,7 @@ import Application.Error (AppError(..))
 import Control.Concurrent.Async as Async
 import UnliftIO.Async as UAsync
 import Control.Monad.IO.Unlift (MonadUnliftIO)
+import Optics (_Right, traversed, (%), (%~))
 
 run :: IO ()
 run = do
@@ -50,7 +51,7 @@ instance UserDataPort AppM where
   getPosts uid = do
     env <- ask
     eJsons <- fetchPosts env uid
-    pure $ fmap (map toPost) eJsons
+    pure $ (_Right % traversed) %~ toPost $ eJsons
 
   getPostWithCommentsList posts = do
     env <- ask
