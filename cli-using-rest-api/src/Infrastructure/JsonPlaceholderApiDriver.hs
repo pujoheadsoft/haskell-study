@@ -9,7 +9,6 @@ import qualified Data.ByteString.Lazy as LBS
 import GHC.Generics (Generic)
 import Environment
 import Control.Monad.IO.Class (MonadIO (..))
-import Control.Concurrent (threadDelay)
 import Control.Exception (try, SomeException)
 import Application.Error (AppError(..))
 import Network.HTTP.Req
@@ -42,34 +41,25 @@ data CommentJson = CommentJson
 instance FromJSON CommentJson
 
 fetchPosts :: MonadIO m => Environment -> String -> m (Either AppError [PostJson])
-fetchPosts env uid = liftIO $ do
-  let baseEither = buildBaseUrl (Text.pack env.apiBaseUrl)
-  case baseEither of
-    Left e -> pure (Left e)
-    Right baseUrl -> do
-      let url = baseUrl /: "users" /~ uid /: "posts"
-      netResult <- try $ runReq defaultHttpConfig $ do
-        resp <- req GET url NoReqBody lbsResponse mempty
-        pure $ decodeList (responseBody resp)
-      case netResult of
-        Left ex      -> pure $ Left (NetworkError (packSome ex))
-        Right decoded -> pure decoded
+fetchPosts env uid = liftIO $ withBaseUrl env $ \baseUrl -> do
+  let url = baseUrl /: "users" /~ uid /: "posts"
+  requestList url
 
 fetchComments :: MonadIO m => Environment -> String -> m (Either AppError [CommentJson])
-fetchComments env uid = liftIO $ do
-  putStrLn $ "Fetching comments for user: " <> uid
-  let baseEither = buildBaseUrl (Text.pack env.apiBaseUrl)
-  case baseEither of
-    Left e -> pure (Left e)
-    Right baseUrl -> do
-      let url = baseUrl /: "users" /~ uid /: "comments"
-      netResult <- try $ runReq defaultHttpConfig $ do
-        _ <- liftIO (threadDelay 1000000)
-        resp <- req GET url NoReqBody lbsResponse mempty
-        pure $ decodeList (responseBody resp)
-      case netResult of
-        Left ex      -> pure $ Left (NetworkError (packSome ex))
-        Right decoded -> pure decoded
+fetchComments env uid = liftIO $ withBaseUrl env $ \baseUrl -> do
+  let url = baseUrl /: "users" /~ uid /: "comments"
+  requestList url
+
+withBaseUrl :: Environment -> (Url 'Https -> IO (Either AppError [a])) -> IO (Either AppError [a])
+withBaseUrl env action =
+  either (pure . Left) action (buildBaseUrl (Text.pack env.apiBaseUrl))
+
+requestList :: FromJSON a => Url 'Https -> IO (Either AppError [a])
+requestList url = do
+  netResult <- try $ runReq defaultHttpConfig $ do
+    resp <- req GET url NoReqBody lbsResponse mempty
+    pure $ decodeList (responseBody resp)
+  pure $ either (Left . NetworkError . packSome) id netResult
 
 decodeList :: FromJSON a => LBS.ByteString -> Either AppError [a]
 decodeList bs =
