@@ -21,6 +21,8 @@ import Text.URI
   , Authority(..), authHost, unRText
   )
 import Data.List.NonEmpty (toList)
+import Control.Monad (when)
+import Data.Bifunctor (first)
 
 data PostJson = PostJson
   { userId :: Int
@@ -82,22 +84,12 @@ packSome :: SomeException -> Text
 packSome = toText . show
 
 buildBaseUrl :: Text -> Either AppError (Url 'Https)
-buildBaseUrl raw =
-  case mkURI raw of
-    Left _ -> Left (Unexpected ("Invalid base URL: " <> raw))
-    Right u ->
-      let mScheme = fmap unRText (uriScheme u)
-          eAuth   = uriAuthority u
-      in case (mScheme, eAuth) of
-           (Just schemeTxt, Right auth) ->
-             if schemeTxt == "https"
-               then
-                 let hostTxt = unRText (authHost auth)
-                     base0 = https hostTxt
-                     segs = case uriPath u of
-                              Nothing -> []
-                              Just (_, neSegs) -> fmap unRText (toList neSegs)
-                     full = foldl (/:) base0 segs
-                 in Right full
-               else Left (Unexpected ("Unsupported scheme: " <> schemeTxt))
-           _ -> Left (Unexpected "URL must include scheme and host")
+buildBaseUrl raw = do
+  u <- first (const . Unexpected $ "Invalid base URL format: " <> raw) (mkURI raw)
+  schemeTxt <- maybe (Left . Unexpected $ "URL must include scheme") (Right . unRText) (uriScheme u)
+  auth <- first (const . Unexpected $ "URL must include host/authority") (uriAuthority u)
+  when (schemeTxt /= "https") $ Left . Unexpected $ "Unsupported scheme: " <> schemeTxt
+  let hostTxt = unRText . authHost $ auth
+      base    = https hostTxt
+      segs    = maybe [] (\(_, neSegs) -> unRText <$> toList neSegs) (uriPath u)
+  pure $ foldl (/:) base segs
