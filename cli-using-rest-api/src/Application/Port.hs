@@ -7,7 +7,6 @@ import Application.Error (AppError)
 
 class Monad m => UserDataPort m where
   getPosts :: UserId -> m (Either AppError [Post])
-  getPostWithCommentsList :: [Post] -> m (Either AppError [PostWithComments])
   getPostWithComments :: Post -> m (Either AppError PostWithComments)
 
 class Monad m => OutputPort m where

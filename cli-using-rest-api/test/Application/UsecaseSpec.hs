@@ -28,32 +28,8 @@ instance MonadError AppError (MockT IO) where
 
 spec :: Spec
 spec = describe "usecaseのテスト" do
+
   it "ユーザーの投稿とコメントをまとめたものを取得して保存する" do
-      let 
-        post = Post "1" "title" "body"
-        comment = Comment "1" "name" "email" "body"
-
-      result <- runMockT do
-        _getPosts $ ("1" :: UserId) |> Right [post]
-
-        _getPostWithCommentsList $ [post] |>
-          Right [ PostWithComments post [ comment ] ]
-
-        _savePostWithCommentsList $ ("output.json" :: FilePath)
-          |> [ PostWithComments post [ comment ] ]
-          |> Right ()
-
-        execute (Options "1" "output.json")
-
-      result `shouldBe` ()
-
-  it "getPosts で DecodeError" do
-    runMockT (do
-      _getPosts $ ("1" :: UserId) |> Left (DecodeError "bad json")
-      execute (Options "1" "out.json")
-      ) `shouldThrow` \(ErrorCall s) -> "DecodeError" `isInfixOf` s
-
-  it "ユーザーの投稿とコメントをまとめたものを取得して保存する その2" do
     let 
       post = Post "1" "title" "body"
       comment = Comment "1" "name" "email" "body"
@@ -64,13 +40,20 @@ spec = describe "usecaseのテスト" do
       _savePostWithCommentsList $ ("output.json" :: FilePath)
         |> [ PostWithComments post [ comment ] ]
         |> Right ()
-      execute2 (Options "1" "output.json")
+      execute (Options "1" "output.json")
     result `shouldBe` ()
+
+  it "getPosts で DecodeError" do
+    runMockT (do
+      _getPosts $ ("1" :: UserId) |> Left (DecodeError "bad json")
+      execute (Options "1" "out.json")
+      ) `shouldThrow` \(ErrorCall s) -> "DecodeError" `isInfixOf` s
+
 
   it "getPostWithComments で NetworkError" do
     runMockT (do
       let post = Post "1" "t" "b"
       _getPosts $ ("1" :: UserId) |> Right [post]
       _getPostWithComments $ post |> Left (NetworkError "boom")
-      execute2 (Options "1" "out.json")
+      execute (Options "1" "out.json")
       ) `shouldThrow` \(ErrorCall s) -> "NetworkError" `isInfixOf` s

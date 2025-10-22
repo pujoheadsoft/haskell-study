@@ -17,7 +17,6 @@ import qualified Infrastructure.JsonPlaceholderApiDriver as Api
 import Infrastructure.FileDriver
 import qualified Infrastructure.FileDriver as File
 import Application.Error (AppError(..))
-import Control.Concurrent.Async as Async
 import UnliftIO.Async as UAsync
 import Control.Monad.IO.Unlift (MonadUnliftIO)
 import Optics (_Right, traversed, (%), (%~))
@@ -51,21 +50,12 @@ instance UserDataPort AppM where
   getPosts uid = do
     env <- ask
     eJsons <- fetchPosts env uid
-    pure $ (_Right % traversed) %~ toPost $ eJsons
-
-  getPostWithCommentsList posts = do
-    env <- ask
-    eLists <- liftIO $ Async.mapConcurrently (single env) posts
-    pure $ sequence eLists
-    where
-      single env post = do
-        eComments <- fetchComments env post.id
-        pure $ fmap (PostWithComments post . map toComment) eComments
+    pure $ (_Right % traversed %~ toPost) eJsons
 
   getPostWithComments post = do
     env <- ask
-    eComments <- fetchComments env post.id
-    pure $ fmap (PostWithComments post . map toComment) eComments
+    eCommentJsons <- fetchComments env post.id
+    pure $ PostWithComments post <$> (_Right % traversed %~ toComment) eCommentJsons
 
 instance OutputPort AppM where
   savePostWithCommentsList path postWithComments = do
