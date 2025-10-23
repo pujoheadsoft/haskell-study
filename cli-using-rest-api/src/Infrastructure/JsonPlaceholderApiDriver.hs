@@ -14,14 +14,9 @@ import Control.Exception (try, SomeException)
 import Application.Error (AppError(..))
 import Network.HTTP.Req
   ( runReq, defaultHttpConfig, req, GET(..), NoReqBody(..)
-  , lbsResponse, responseBody, (/:), (/~), https, http, Url, Scheme
+  , lbsResponse, responseBody, (/:), (/~)
   )
-import Text.URI
-  ( mkURI, uriScheme, uriAuthority, uriPath
-  , Authority(..), authHost, unRText
-  )
-import Data.List.NonEmpty (toList)
-import Data.Bifunctor (first)
+import BaseUrl (BaseUrl (..), buildBaseUrl)
 
 data PostJson = PostJson
   { userId :: Int
@@ -73,17 +68,4 @@ toText = Text.pack
 packSome :: SomeException -> Text
 packSome = toText . show
 
-buildBaseUrl :: Text -> Either AppError BaseUrl
-buildBaseUrl raw = do
-  u <- first (const . Unexpected $ "Invalid base URL format: " <> raw) (mkURI raw)
-  schemeTxt <- maybe (Left . Unexpected $ "URL must include scheme") (Right . unRText) (uriScheme u)
-  auth <- first (const . Unexpected $ "URL must include host/authority") (uriAuthority u)
-  let hostTxt = unRText (authHost auth)
-      segs    = maybe [] (\(_, neSegs) -> unRText <$> toList neSegs) (uriPath u)
-  case schemeTxt of
-    "https" -> pure . BaseUrl $ foldl (/:) (https hostTxt) segs
-    "http"  -> pure . BaseUrl $ foldl (/:) (http hostTxt) segs
-    other    -> Left . Unexpected $ "Unsupported scheme: " <> other
 
-data BaseUrl where
-  BaseUrl :: Url (s :: Scheme) -> BaseUrl
