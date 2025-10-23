@@ -1,7 +1,13 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GADTs #-}
-module Infrastructure.JsonPlaceholderApiDriver where
+module Infrastructure.JsonPlaceholderApiDriver (
+  PostJson(..)
+ , CommentJson(..)
+ , fetchPosts
+ , fetchComments
+ , requestList
+ ) where
 
 import Data.Aeson (FromJSON, eitherDecode)
 import Data.Text (Text)
@@ -14,9 +20,9 @@ import Control.Exception (try, SomeException)
 import Application.Error (AppError(..))
 import Network.HTTP.Req
   ( runReq, defaultHttpConfig, req, GET(..), NoReqBody(..)
-  , lbsResponse, responseBody, (/:), (/~)
+  , lbsResponse, responseBody, (/:), (/~), Url
   )
-import BaseUrl (BaseUrl (..), buildBaseUrl)
+import BaseUrl (BaseUrl (..))
 
 data PostJson = PostJson
   { userId :: Int
@@ -36,21 +42,15 @@ data CommentJson = CommentJson
 instance FromJSON CommentJson
 
 fetchPosts :: MonadIO m => Environment -> String -> m (Either AppError [PostJson])
-fetchPosts env uid = liftIO $ withBaseUrl env $ \(BaseUrl base) -> do
-  let url = base /: "users" /~ uid /: "posts"
-  requestList (BaseUrl url)
+fetchPosts (Environment (BaseUrl base)) uid = liftIO $ do
+  requestList $ base /: "users" /~ uid /: "posts"
 
 fetchComments :: MonadIO m => Environment -> String -> m (Either AppError [CommentJson])
-fetchComments env uid = liftIO $ withBaseUrl env $ \(BaseUrl base) -> do
-  let url = base /: "users" /~ uid /: "comments"
-  requestList (BaseUrl url)
+fetchComments (Environment (BaseUrl base)) uid = liftIO $ do
+  requestList $ base /: "users" /~ uid /: "comments"
 
-withBaseUrl :: Environment -> (BaseUrl -> IO (Either AppError [a])) -> IO (Either AppError [a])
-withBaseUrl env action =
-  either (pure . Left) action (buildBaseUrl (Text.pack env.apiBaseUrl))
-
-requestList :: FromJSON a => BaseUrl -> IO (Either AppError [a])
-requestList (BaseUrl url) = do
+requestList :: FromJSON a => Url scheme -> IO (Either AppError [a])
+requestList url = do
   netResult <- try $ runReq defaultHttpConfig $ do
     resp <- req GET url NoReqBody lbsResponse mempty
     pure $ decodeList (responseBody resp)

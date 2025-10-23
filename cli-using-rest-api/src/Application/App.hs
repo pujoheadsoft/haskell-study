@@ -1,5 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 module Application.App (run) where
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
@@ -8,13 +9,11 @@ import Control.Monad.Reader (ReaderT (runReaderT), MonadReader (ask))
 import Application.Port
 import Application.Usecase
 import Control.Monad.Except (MonadError (..))
-import Control.Exception (try, throwIO)
+import Control.Exception (catch, throwIO, try)
 import Environment
 import Domain.Post
 import Domain.Options
-import Infrastructure.JsonPlaceholderApiDriver
 import qualified Infrastructure.JsonPlaceholderApiDriver as Api
-import Infrastructure.FileDriver
 import qualified Infrastructure.FileDriver as File
 import Application.Error (AppError(..))
 import UnliftIO.Async as UAsync
@@ -23,12 +22,10 @@ import Optics (_Right, traversed, (%), (%~))
 
 run :: IO ()
 run = do
-  let env = Environment { apiBaseUrl = "https://jsonplaceholder.typicode.com" }
   options <- parseOptions
-  eRes <- (try $ runApp env (execute options)) :: IO (Either AppError ())
-  case eRes of
-    Left err -> putStrLn $ "Error: " <> show err
-    Right () -> pure ()
+  env <- loadEnvironment
+  runApp env (execute options)
+    `catch` \(err :: AppError) -> putStrLn $ "Error: " <> show err
 
 newtype AppM a = AppM (ReaderT Environment IO a)
   deriving newtype (Functor, Applicative, Monad, MonadIO, MonadReader Environment, MonadUnliftIO)
@@ -49,17 +46,17 @@ instance MonadAsync AppM where
 instance UserDataPort AppM where
   getPosts uid = do
     env <- ask
-    eJsons <- fetchPosts env uid
+    eJsons <- Api.fetchPosts env uid
     pure $ (_Right % traversed %~ toPost) eJsons
 
   getPostWithComments post = do
     env <- ask
-    eCommentJsons <- fetchComments env post.id
+    eCommentJsons <- Api.fetchComments env post.id
     pure $ PostWithComments post <$> (_Right % traversed %~ toComment) eCommentJsons
 
 instance OutputPort AppM where
   savePostWithCommentsList path postWithComments = do
-    liftIO $ saveAsJson path (PostWithCommentsListJson (toPostWithCommentsJson <$> postWithComments))
+    liftIO $ File.saveAsJson path (File.PostWithCommentsListJson (toPostWithCommentsJson <$> postWithComments))
     pure (Right ())
 
 toPost :: Api.PostJson -> Post
@@ -68,10 +65,10 @@ toPost p = Post (show p.id) p.title p.body
 toComment :: Api.CommentJson -> Comment
 toComment c = Comment (show c.id) c.name c.email c.body
 
-toPostWithCommentsJson :: PostWithComments -> PostWithCommentsJson
-toPostWithCommentsJson pwc = PostWithCommentsJson
-  { post = File.PostJson pwc.post.title pwc.post.body
-  , comments = toCommentJson <$> pwc.comments
+toPostWithCommentsJson :: PostWithComments -> File.PostWithCommentsJson
+toPostWithCommentsJson pwc = File.PostWithCommentsJson
+  { File.post = File.PostJson pwc.post.title pwc.post.body
+  , File.comments = toCommentJson <$> pwc.comments
   }
 
 toCommentJson :: Comment -> File.CommentJson

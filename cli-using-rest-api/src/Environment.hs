@@ -3,27 +3,36 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 {-# HLINT ignore "Use newtype instead of data" #-}
-{-# LANGUAGE DeriveGeneric #-}
-module Environment where
+module Environment (Environment(..), loadEnvironment) where
 
+import BaseUrl (BaseUrl, buildBaseUrl)
 import Optics.TH (makeFieldLabels)
-import BaseUrl (BaseUrl)
-import GHC.Generics (Generic)
-import System.Envy (FromEnv (..), env)
+import System.Envy (FromEnv (..), decodeEnv, Parser, envMaybe)
+import Control.Exception (throwIO)
+import Application.Error (AppError (..))
+import Data.Text (Text, unpack, pack)
 
 data Environment = Environment {
-  apiBaseUrl :: String
+  apiBaseUrl :: BaseUrl
 } deriving (Show)
-
 makeFieldLabels ''Environment
 
-data Setting = Setting {
-  settingApiBaseUrl :: BaseUrl
-} deriving (Show, Generic)
+instance FromEnv Environment where
+  fromEnv _ = Environment
+    <$> envCustomValidate "API_BASE_URL" "https://jsonplaceholder.typicode.com" buildBaseUrl
 
--- instance FromEnv Setting where
---   fromEnv = do
---     mBaseUrl <- envMaybe "API_BASE_URL"
---     case mBaseUrl of
---       Just baseUrl -> return $ Setting baseUrl
---       Nothing      -> fail "API_BASE_URL environment variable not set"
+loadEnvironment :: IO Environment
+loadEnvironment = do
+  r <- decodeEnv
+  case r of
+    Left msg -> throwIO (Unexpected (pack msg))
+    Right env -> pure env
+
+envCustomValidate :: Text -> Text -> (Text -> Either AppError a) -> Parser a
+envCustomValidate key def parser = do
+  let k = unpack key
+  mval <- envMaybe k
+  let raw = maybe def pack mval
+  case parser raw of
+    Right v -> pure v
+    Left e -> fail (k <> " validation failed: " <> show e)
