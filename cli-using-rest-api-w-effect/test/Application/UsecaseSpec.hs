@@ -1,6 +1,8 @@
 {-# LANGUAGE FlexibleContexts #-}
+{-# OPTIONS_GHC -Wno-name-shadowing #-}
 module Application.UsecaseSpec (spec) where
 
+import Prelude hiding (any)
 import Test.Hspec
 import Domain.Post
 import Application.Usecase (execute)
@@ -9,66 +11,91 @@ import Application.Port
 import Application.Error (AppError(..))
 import Polysemy
 import Polysemy.Error
-import Polysemy.Final (runFinal, embedToFinal)
-import Polysemy.Async (Async, asyncToIOFinal)
+import Polysemy.Async (asyncToIOFinal, Async)
+import Test.MockCat (createStubFn, (|>), createMock, stubFn, shouldApplyTo, any, shouldApplyTimes, to)
 
 spec :: Spec
 spec = describe "usecaseのテスト (Polysemy effects)" do
 
-  -- it "ユーザーの投稿とコメントをまとめたものを取得して保存する" do
-  --   let 
-  --     post = Post "1" "title" "body"
-  --     comment = Comment "1" "name" "email" "body"
-  --     pwc = PostWithComments post [comment]
-  --   let program = execute (Options "1" "output.json")
-  --   r <- runTestSuccess [post] [Right pwc]
-  --           (Right ()) program
-  --   r `shouldBe` Right ()
-  
-  it "正常系" do
-    "" `shouldBe` ""
+  it "ユーザーの投稿とコメントをまとめたものを取得して保存する" do
+    let
+      post = Post "1" "title" "body"
+      postWithComments = PostWithComments post [Comment "101" "name" "email" "comment body"]
 
-  -- it "getPosts で DecodeError" do
-  --   let program = execute (Options "1" "out.json")
-  --   r <- runTestSuccess [] [] (Left (DecodeError "bad json")) program
-  --   r `shouldBe` Left (DecodeError "bad json")
+    getPost <- createStubFn $ ("userId" :: UserId) |> (Right [post] :: Either AppError [Post])
+    getPostWithComments <- createStubFn $ post |> (Right postWithComments :: Either AppError PostWithComments)
+    savePostWithCommentsList <- createMock $ ("out.json" :: FilePath) |> [postWithComments] |> (Right () :: Either AppError ())
 
-  -- it "getPostWithComments で NetworkError" do
-  --   let post = Post "1" "t" "b"
-  --       program = execute (Options "1" "out.json")
-  --   r <- runTestSuccess [post] [Left (NetworkError "boom")] (Right ()) program
-  --   r `shouldBe` Left (NetworkError "boom")
+    let
+      runUserDataPort :: Sem (UserDataPort : r) a -> Sem r a
+      runUserDataPort = interpret $ \case
+        GetPosts uid -> pure $ getPost uid
+        GetPostWithComments post -> pure $ getPostWithComments post
 
--- Helpers
--- runTestSuccess 
---   :: [Post]
---   -> [Either AppError PostWithComments]
---   -> Either AppError ()
---   -> Sem '[UserDataPort, OutputPort, Logger, Embed IO, Error AppError, Async, Final IO] a
---   -> IO (Either AppError a)
--- runTestSuccess posts pwcs saveResult prog = do
---   pure $ runFinal
---      . asyncToIOFinal
---      . embedToFinal
---      . runError @AppError
---      . runLoggerIgnore
---      . runOutputMock saveResult
---      . runUserDataMock posts pwcs
---     $ prog
+      runOutputPort :: Sem (OutputPort : r) a -> Sem r a
+      runOutputPort = interpret $ \case
+        SavePostWithCommentsList path pwcs -> pure $ stubFn savePostWithCommentsList path pwcs
 
--- runLoggerIgnore :: Sem (Logger ': r) a -> Sem r a
--- runLoggerIgnore = interpret \case
---   LogInfo _ -> pure ()
+    r <- runApp
+       . runOutputPort
+       . runUserDataPort
+       $ execute (Options "userId" "out.json")
 
--- runOutputMock :: Either AppError () -> Sem (OutputPort ': r) a -> Sem r a
--- runOutputMock saveResult = interpret \case
---   SavePostWithCommentsList _ _ -> pure saveResult
+    savePostWithCommentsList `shouldApplyTo` (("out.json" :: FilePath) |> [postWithComments])
+    r `shouldBe` Right ()
 
--- runUserDataMock :: [Post] -> [Either AppError PostWithComments] -> Sem (UserDataPort ': r) a -> Sem r a
--- runUserDataMock posts pwcs0 = do
---   let pwcsRef = pwcs0
---   interpret \case
---     GetPosts _uid -> pure (Right posts)
---     GetPostWithComments _ -> case pwcsRef of
---       (x:_) -> pure x
---       [] -> pure (Left (Unexpected "No mock value"))
+  it "getPosts で DecodeError を返して中断" do
+    let err = DecodeError "bad json"
+    getPostsStub <- createStubFn $ ("userId" :: UserId) |> (Left err :: Either AppError [Post])
+    saveStub <- createMock $ ("out.json" :: FilePath) |> ([] :: [PostWithComments]) |> (Right () :: Either AppError ())
+
+    let
+      runUserDataPort :: Sem (UserDataPort : r) a -> Sem r a
+      runUserDataPort = interpret \case
+        GetPosts uid -> pure $ getPostsStub uid
+        GetPostWithComments _ -> undefined
+      runOutputPort :: Sem (OutputPort : r) a -> Sem r a
+      runOutputPort = interpret \case
+        SavePostWithCommentsList path pwcs -> pure $ stubFn saveStub path pwcs
+
+    r <- runApp
+       . runOutputPort
+       . runUserDataPort
+       $ execute (Options "userId" "out.json")
+    r `shouldBe` Left err
+
+  it "getPostWithComments の途中で NetworkError" do
+    let post = Post "1" "title" "body"
+        err = NetworkError "boom"
+    getPostsStub <- createStubFn $ ("userId" :: UserId) |> (Right [post] :: Either AppError [Post])
+    getPostWithCommentsStub <- createStubFn $ post |> (Left err :: Either AppError PostWithComments)
+    saveStub <- createMock $ any @FilePath |> any @[PostWithComments] |> (Right () :: Either AppError ())
+
+    let
+      runUserDataPort :: Sem (UserDataPort : r) a -> Sem r a
+      runUserDataPort = interpret \case
+        GetPosts uid -> pure $ getPostsStub uid
+        GetPostWithComments p -> pure $ getPostWithCommentsStub p
+
+      runOutputPort :: Sem (OutputPort : r) a -> Sem r a
+      runOutputPort = interpret \case
+        SavePostWithCommentsList path pwcs -> pure $ stubFn saveStub path pwcs
+
+    r <- runApp
+       . runOutputPort
+       . runUserDataPort
+       $ execute (Options "userId" "out.json")
+
+    r `shouldBe` Left err
+    saveStub `shouldApplyTimes` (0 :: Int) `to` (any @FilePath |> any @[PostWithComments])
+
+runApp :: Sem [Error AppError, Embed IO, Async, Logger, Final IO] a -> IO (Either AppError a)
+runApp = runFinal
+     . runLogger
+     . asyncToIOFinal
+     . embedToFinal
+     . runError @AppError
+
+runLogger :: Sem (Logger : r) a -> Sem r a
+runLogger = interpret $ \case
+  LogInfo _ -> pure ()

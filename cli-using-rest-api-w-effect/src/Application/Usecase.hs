@@ -2,7 +2,6 @@
 module Application.Usecase (execute) where
 
 import Application.Port
-import Domain.Post (PostWithComments)
 import Application.Error (AppError(..))
 import Domain.Options
 import Polysemy (Members, Sem)
