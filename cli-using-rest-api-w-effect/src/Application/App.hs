@@ -23,7 +23,17 @@ run = do
   e <- runSem env (execute options)
   either (\err -> putStrLn $ "Error: " <> show err) (const (pure ())) e
 
-runSem :: Environment -> Sem '[UserDataPort, Reader Environment, OutputPort, Logger, Error AppError, Embed IO, Async, Final IO] a -> IO (Either AppError a)
+runSem :: Environment
+       -> Sem '[ UserDataPort
+         , Reader Environment
+         , OutputPort
+         , Logger
+         , Error AppError
+         , Embed IO
+         , Async
+         , Final IO
+         ] a
+       -> IO (Either AppError a)
 runSem env = runFinal
           . asyncToIOFinal
           . embedToFinal
