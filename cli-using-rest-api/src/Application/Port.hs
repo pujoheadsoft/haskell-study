@@ -4,6 +4,7 @@ module Application.Port where
 
 import Domain.Post
 import Application.Error (AppError)
+import Data.Text (Text)
 
 class Monad m => UserDataPort m where
   getPosts :: UserId -> m (Either AppError [Post])
@@ -14,3 +15,6 @@ class Monad m => OutputPort m where
 
 class Monad m => MonadAsync m where
   mapConcurrently :: Traversable t => (a -> m b) -> t a -> m (t b)
+
+class Monad m => Logger m where
+  logInfo :: Text -> m ()

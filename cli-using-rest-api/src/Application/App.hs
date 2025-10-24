@@ -59,6 +59,9 @@ instance OutputPort AppM where
     liftIO $ File.saveAsJson path (File.PostWithCommentsListJson (toPostWithCommentsJson <$> postWithComments))
     pure (Right ())
 
+instance Logger AppM where
+  logInfo msg = liftIO $ print msg
+
 toPost :: Api.PostJson -> Post
 toPost p = Post (show p.id) p.title p.body
 
