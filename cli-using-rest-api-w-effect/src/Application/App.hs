@@ -14,9 +14,7 @@ import Optics (_Right, traversed, (%), (%~))
 import Polysemy hiding (run)
 import Polysemy.Error (Error, runError)
 import Polysemy.Reader (Reader, runReader, ask)
-import Polysemy (Embed, embed)
 import Polysemy.Async (Async, asyncToIOFinal)
-import Polysemy.Final (runFinal, embedToFinal)
 
 run :: IO ()
 run = do
@@ -25,20 +23,15 @@ run = do
   e <- runSem env (execute options)
   either (\err -> putStrLn $ "Error: " <> show err) (const (pure ())) e
 
--- Effect stack includes Async from polysemy-async interpreted via asyncToIOFinal.
--- We use final style to support real concurrency.
--- NOTE: Order of effects matters. We place Embed IO BEFORE Async so that
--- we can remove Embed IO (embedToFinal) producing stack [Async, Final IO]
--- which asyncToIOFinal then interprets. UserDataPort needs Reader & Embed IO.
 runSem :: Environment -> Sem '[UserDataPort, Reader Environment, OutputPort, Logger, Error AppError, Embed IO, Async, Final IO] a -> IO (Either AppError a)
 runSem env = runFinal
-          . asyncToIOFinal            -- interpret Async after Final IO is introduced by embedToFinal (to its right)
-          . embedToFinal              -- eliminate Embed IO, introduce Final IO
-          . runError @AppError        -- handle errors
-          . runLoggerIO               -- interpret Logger (needs Embed IO)
-          . runOutputPortIO           -- interpret OutputPort (needs Embed IO)
-          . runReader env             -- keep Reader available for runUserDataPortIO (executed next)
-          . runUserDataPortIO         -- interpret UserDataPort (needs Reader & Embed IO)
+          . asyncToIOFinal
+          . embedToFinal
+          . runError @AppError
+          . runLoggerIO
+          . runOutputPortIO
+          . runReader env
+          . runUserDataPortIO
 
 -- Interpreters
 runLoggerIO :: Member (Embed IO) r => Sem (Logger ': r) a -> Sem r a
@@ -77,5 +70,3 @@ toPostWithCommentsJson pwc = File.PostWithCommentsJson
 
 toCommentJson :: Comment -> File.CommentJson
 toCommentJson c = File.CommentJson c.name c.email c.body
-
--- (Removed custom MonadAsync interpreter; using polysemy-async's asyncToIOFinal instead.)

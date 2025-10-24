@@ -13,8 +13,7 @@ execute :: Members '[UserDataPort, OutputPort, Logger, Async, Error AppError] r 
 execute options = do
   logInfo "start: use case"
   let uid = options.userId
-  posts <- getPosts uid >>= fromEither   -- Either AppError [Post]
-  -- Run each getPostWithComments concurrently.
+  posts <- getPosts uid >>= fromEither
   results <- sequenceConcurrently (getPostWithComments <$> posts)
   let ePwcs = sequence (catMaybes results)
   pwcs <- fromEither ePwcs
