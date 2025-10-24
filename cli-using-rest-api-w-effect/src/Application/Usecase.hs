@@ -10,12 +10,11 @@ import Polysemy.Async (Async, sequenceConcurrently)
 import Data.Maybe (catMaybes)
 
 execute :: Members '[UserDataPort, OutputPort, Logger, Async, Error AppError] r => Options -> Sem r ()
-execute options = do
+execute (Options userId outputPath) = do
   logInfo "start: use case"
-  let uid = options.userId
-  posts <- getPosts uid >>= fromEither
-  results <- sequenceConcurrently (getPostWithComments <$> posts)
-  let ePwcs = sequence (catMaybes results)
-  pwcs <- fromEither ePwcs
-  savePostWithCommentsList options.outputPath pwcs >>= fromEither
+  let posts = getPosts userId >>= fromEither
+  pwcs <- posts
+      >>= sequenceConcurrently . map getPostWithComments
+      >>= fromEither . sequence . catMaybes
+  savePostWithCommentsList outputPath pwcs >>= fromEither
   logInfo "end: use case"
