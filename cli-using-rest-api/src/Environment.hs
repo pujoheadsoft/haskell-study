@@ -5,7 +5,7 @@
 {-# HLINT ignore "Use newtype instead of data" #-}
 module Environment (Environment(..), loadEnvironment) where
 
-import BaseUrl (BaseUrl, buildBaseUrl)
+import BaseUrl (BaseUrl, parseBaseUrl)
 import Optics.TH (makeFieldLabels)
 import System.Envy (FromEnv (..), decodeEnv, Parser, envMaybe)
 import Control.Exception (throwIO)
@@ -19,7 +19,7 @@ makeFieldLabels ''Environment
 
 instance FromEnv Environment where
   fromEnv _ = Environment
-    <$> envCustomValidate "API_BASE_URL" "https://jsonplaceholder.typicode.com" buildBaseUrl
+    <$> envCustomValidate "API_BASE_URL" "https://jsonplaceholder.typicode.com" parseBaseUrl
 
 loadEnvironment :: IO Environment
 loadEnvironment = do

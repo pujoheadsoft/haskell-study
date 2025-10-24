@@ -1,6 +1,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GADTs #-}
+{-# OPTIONS_GHC -Wno-incomplete-patterns #-}
 module Infrastructure.JsonPlaceholderApiDriver (
   PostJson(..)
  , CommentJson(..)
@@ -22,7 +23,7 @@ import Network.HTTP.Req
   ( runReq, defaultHttpConfig, req, GET(..), NoReqBody(..)
   , lbsResponse, responseBody, (/:), (/~), Url
   )
-import BaseUrl (BaseUrl (..))
+import BaseUrl (pattern BaseUrl)
 
 data PostJson = PostJson
   { userId :: Int
