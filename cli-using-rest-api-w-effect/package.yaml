@@ -1,0 +1,108 @@
+name:                cli-using-rest-api-w-effect
+version:             0.1.0.0
+github:              "githubuser/cli-using-rest-api"
+license:             BSD-3-Clause
+author:              "Author name here"
+maintainer:          "example@example.com"
+copyright:           "2025 Author name here"
+
+extra-source-files:
+- README.md
+- CHANGELOG.md
+
+# Metadata used when publishing your package
+# synopsis:            Short description of your package
+# category:            Web
+
+# To avoid duplicated efforts in documentation and dealing with the
+# complications of embedding Haddock markup inside cabal files, it is
+# common to point users to the README.md file.
+description:         Please see the README on GitHub at <https://github.com/githubuser/cli-using-rest-api#readme>
+
+dependencies:
+  - base >= 4.7 && < 5
+  - optparse-applicative
+  - aeson
+  - aeson-pretty
+  - optics
+  - optics-th
+  - text
+  - async
+  - mtl
+  - req
+  - bytestring
+  - unliftio-core
+  - unliftio
+  - modern-uri
+  - envy
+  - polysemy
+  - polysemy-plugin
+  - polysemy-conc
+
+ghc-options:
+- -Wall
+- -Wcompat
+- -Widentities
+- -Wincomplete-record-updates
+- -Wincomplete-uni-patterns
+- -Wmissing-export-lists
+- -Wmissing-home-modules
+- -Wpartial-fields
+- -Wredundant-constraints
+- -O2 
+- -flate-specialise
+- -fspecialise-aggressively
+- -fplugin=Polysemy.Plugin
+
+default-extensions:
+- LambdaCase
+- DerivingStrategies
+- DataKinds
+- TypeFamilies
+- BlockArguments
+- FunctionalDependencies
+- RecordWildCards
+- DefaultSignatures
+- PatternSynonyms
+- TemplateHaskell
+- PartialTypeSignatures
+- AllowAmbiguousTypes
+- DuplicateRecordFields
+- OverloadedRecordDot
+- NoFieldSelectors
+- OverloadedStrings
+- FlexibleContexts
+- GADTs
+- PolyKinds
+- RankNTypes
+- ScopedTypeVariables
+- TypeApplications
+- TypeOperators
+
+library:
+  source-dirs: src
+
+executables:
+  cli:
+    main:                Main.hs
+    source-dirs:         app
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - cli-using-rest-api-w-effect
+
+tests:
+  cli-test:
+    main:                Spec.hs
+    source-dirs:         test
+    ghc-options:
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - cli-using-rest-api-w-effect
+    - hspec
+    - mockcat
+    - polysemy-conc
