@@ -15,6 +15,7 @@ import Polysemy hiding (run)
 import Polysemy.Error (Error, runError)
 import Polysemy.Reader (Reader, runReader, ask)
 import Polysemy.Async (Async, asyncToIOFinal)
+import Data.Function ((&))
 
 run :: IO ()
 run = do
@@ -34,14 +35,16 @@ runSem :: Environment
          , Final IO
          ] a
        -> IO (Either AppError a)
-runSem env = runFinal
-          . asyncToIOFinal
-          . embedToFinal
-          . runError @AppError
-          . runLoggerIO
-          . runOutputPortIO
-          . runReader env
-          . runUserDataPortIO
+runSem env sem =
+  sem
+    & runUserDataPortIO
+    & runReader env
+    & runOutputPortIO
+    & runLoggerIO
+    & runError @AppError
+    & embedToFinal
+    & asyncToIOFinal
+    & runFinal
 
 -- Interpreters
 runLoggerIO :: Member (Embed IO) r => Sem (Logger ': r) a -> Sem r a
